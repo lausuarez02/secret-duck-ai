@@ -1,55 +1,7 @@
 import { RaceState } from '@/types';
 
-export function formatAddress(address: string): string {
-  if (!address) return '';
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
-
-export function formatAmount(amount: bigint, decimals: number = 18): string {
-  const divisor = BigInt(10 ** decimals);
-  const quotient = amount / divisor;
-  const remainder = amount % divisor;
-  
-  const quotientStr = quotient.toString();
-  const remainderStr = remainder.toString().padStart(decimals, '0');
-  
-  const decimalPart = remainderStr.slice(0, 2);
-  
-  if (decimalPart === '00') {
-    return quotientStr;
-  }
-  
-  return `${quotientStr}.${decimalPart}`;
-}
-
-export function parseAmount(amount: string, decimals: number = 18): bigint {
-  const [whole, decimal = ''] = amount.split('.');
-  const paddedDecimal = decimal.padEnd(decimals, '0').slice(0, decimals);
-  return BigInt(whole + paddedDecimal);
-}
-
-export function formatTime(timestamp: number): string {
-  const date = new Date(timestamp * 1000);
-  return date.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  });
-}
-
-export function formatTimeLeft(seconds: number): string {
-  if (seconds <= 0) return '00:00:00';
-  
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-  
-  return `${hours.toString().padStart(2, '0')}:${minutes
-    .toString()
-    .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
-
 export function getRaceState(betEnd: number, raceEnd: number, finalized: boolean): RaceState {
-  const now = Math.floor(Date.now() / 1000);
+  const now = Date.now() / 1000;
   
   if (finalized) {
     return RaceState.FINALIZED;
@@ -66,30 +18,42 @@ export function getRaceState(betEnd: number, raceEnd: number, finalized: boolean
   return RaceState.FINALIZED;
 }
 
-export function calculateImpliedProbability(betPool: bigint, totalPool: bigint): number {
-  if (totalPool === BigInt(0)) return 0;
-  return Number((betPool * BigInt(10000)) / totalPool) / 100;
+export function formatTime(timestamp: number): string {
+  return new Date(timestamp * 1000).toLocaleString();
 }
 
-export function copyToClipboard(text: string): Promise<void> {
+export function formatTimeLeft(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${secs}s`;
+  return `${secs}s`;
+}
+
+export function formatAddress(address: string): string {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+export function formatAmount(amount: bigint): string {
+  return (Number(amount) / 10**18).toLocaleString(undefined, { 
+    minimumFractionDigits: 0, 
+    maximumFractionDigits: 2 
+  });
+}
+
+export async function copyToClipboard(text: string): Promise<void> {
   if (navigator.clipboard) {
-    return navigator.clipboard.writeText(text);
-  }
-  
-  const textArea = document.createElement('textarea');
-  textArea.value = text;
-  textArea.style.position = 'fixed';
-  textArea.style.left = '-999999px';
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
-  
-  try {
+    await navigator.clipboard.writeText(text);
+  } else {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
     document.execCommand('copy');
-    return Promise.resolve();
-  } catch (err) {
-    return Promise.reject(err);
-  } finally {
     document.body.removeChild(textArea);
   }
 }

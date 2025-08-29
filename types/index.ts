@@ -1,4 +1,10 @@
-export interface Duck {
+export enum RaceState {
+  BETTING = 'BETTING',
+  REVEALING = 'REVEALING', 
+  FINALIZED = 'FINALIZED'
+}
+
+export interface EntrantData {
   index: number;
   title: string;
   blurb: string;
@@ -7,40 +13,10 @@ export interface Duck {
 export interface Race {
   address: string;
   topic: string;
-  ducks: Duck[];
+  ducks: EntrantData[];
   betEnd: number;
   raceEnd: number;
+  finalized: boolean;
   commitHash: string;
   createdAt: number;
-  finalized: boolean;
-  winnerId?: number;
-}
-
-export interface EntrantData {
-  creator: string;
-  betPool: bigint;
-  tipTotal: bigint;
-}
-
-export enum RaceState {
-  BETTING = 'BETTING',
-  REVEALING = 'REVEALING',
-  FINALIZED = 'FINALIZED',
-}
-
-export interface BetData {
-  entrantId: number;
-  amount: bigint;
-  userBet: bigint;
-}
-
-export interface BookMarket {
-  address: string;
-  raceAddress: string;
-  question: string;
-  marketEnd: number;
-  finalized: boolean;
-  outcome?: number;
-  yesPool: bigint;
-  noPool: bigint;
 }

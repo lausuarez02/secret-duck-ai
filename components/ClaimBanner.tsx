@@ -9,65 +9,43 @@ interface ClaimBannerProps {
   winnerTitle?: string;
   claimAmount?: bigint;
   onClaim: () => void;
-  isClaiming?: boolean;
+  isClaiming: boolean;
 }
 
-export function ClaimBanner({
-  state,
-  winnerId,
-  winnerTitle,
-  claimAmount,
-  onClaim,
-  isClaiming,
+export function ClaimBanner({ 
+  state, 
+  winnerId, 
+  winnerTitle, 
+  claimAmount, 
+  onClaim, 
+  isClaiming 
 }: ClaimBannerProps) {
-  if (state === RaceState.BETTING) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-duck-primary font-bold">Bet on a Duck</p>
-        <p className="text-xs text-duck-gray mt-1">Choose wisely, the AI has already picked</p>
-      </div>
-    );
+  if (state !== RaceState.FINALIZED || winnerId === undefined || !claimAmount || claimAmount <= BigInt(0)) {
+    return null;
   }
 
-  if (state === RaceState.REVEALING) {
-    return (
-      <div className="p-4 text-center">
-        <div className="inline-flex items-center gap-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-2 border-duck-yellow border-t-transparent" />
-          <p className="text-duck-yellow font-bold">Revealing AI's choice...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (state === RaceState.FINALIZED && winnerId !== undefined) {
-    return (
-      <div className="p-4">
-        <div className="flex items-center justify-between max-w-5xl mx-auto">
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+      <div className="bg-gradient-to-r from-duck-yellow/20 to-duck-primary/20 border border-duck-yellow/50 rounded-2xl p-6">
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-duck-yellow font-bold">
-              Winner: #{winnerId} {winnerTitle}
+            <p className="text-lg font-bold text-duck-white mb-1">
+              You won! #{winnerId + 1} {winnerTitle} came first!
             </p>
-            {claimAmount && claimAmount > BigInt(0) && (
-              <p className="text-sm text-duck-gray">
-                You won {formatAmount(claimAmount)} DUCK!
-              </p>
-            )}
+            <p className="text-sm text-duck-gray">
+              Claim your winnings: {formatAmount(claimAmount)} DUCK
+            </p>
           </div>
           
-          {claimAmount && claimAmount > BigInt(0) && (
-            <button
-              onClick={onClaim}
-              disabled={isClaiming}
-              className="px-6 py-2 bg-duck-yellow text-duck-ink font-bold rounded-lg hover:bg-duck-yellow/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isClaiming ? 'Claiming...' : `Claim ${formatAmount(claimAmount)} DUCK`}
-            </button>
-          )}
+          <button
+            onClick={onClaim}
+            disabled={isClaiming}
+            className="px-6 py-3 bg-gradient-to-r from-duck-yellow to-duck-primary text-duck-ink font-bold rounded-xl hover:shadow-lg disabled:opacity-50 transition-all"
+          >
+            {isClaiming ? 'Claiming...' : 'Claim Prize'}
+          </button>
         </div>
       </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 }

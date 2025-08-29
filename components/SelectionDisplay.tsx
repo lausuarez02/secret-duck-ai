@@ -1,11 +1,11 @@
 'use client';
 
 import { DuckAvatar } from './DuckAvatar';
-import { Duck } from '@/types';
+import { EntrantData } from '@/types';
 
 interface SelectionDisplayProps {
   selectedDucks: number[];
-  allDucks: Duck[];
+  allDucks: EntrantData[];
   onRemove: (index: number) => void;
   onSubmit?: () => void;
 }

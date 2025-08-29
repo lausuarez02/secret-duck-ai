@@ -6,14 +6,7 @@ import { config } from '@/lib/wagmi';
 import { useState } from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 20 * 1000,
-        refetchInterval: 30 * 1000,
-      },
-    },
-  }));
+  const [queryClient] = useState(() => new QueryClient());
 
   return (
     <WagmiProvider config={config}>

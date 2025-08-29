@@ -190,12 +190,12 @@ export default function RacePage() {
       setIsApproving(false);
       setIsPlacing(true);
       
-      // Place ordered bet with the 4-duck sequence
+      // Place bet on first selected duck (simplified for demo)
       await placeBet({
         address: address as `0x${string}`,
         abi: RACE_ABI,
         functionName: 'placeBet',
-        args: [selectedDucks, amount], // Pass the ordered array
+        args: [BigInt(selectedDucks[0]), amount],
       });
       
       showToast('success', `🎉 Bet placed! Earned 400 QUACK + 800 governance votes!`);
