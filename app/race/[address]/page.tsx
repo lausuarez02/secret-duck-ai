@@ -8,11 +8,11 @@ import { formatUnits } from 'viem';
 import { CountdownPill } from '@/components/CountdownPill';
 import { DuckCard } from '@/components/DuckCard';
 import { BetModal } from '@/components/BetModal';
-import { AICommitPill } from '@/components/AICommitPill';
 import { AIBanter } from '@/components/AIBanter';
 import { ClaimBanner } from '@/components/ClaimBanner';
 import { GameRulesModal } from '@/components/GameRulesModal';
 import { SelectionDisplay } from '@/components/SelectionDisplay';
+import { WalletConnect } from '@/components/WalletConnect';
 import { getRaceState, formatTime } from '@/lib/utils';
 import { Race, RaceState, EntrantData } from '@/types';
 import { RACE_ABI, ERC20_ABI } from '@/lib/contracts/abis';
@@ -54,22 +54,22 @@ export default function RacePage() {
   });
 
   // Read contract data
-  const { data: betEnd } = useReadContract({
+  const { data: startTime } = useReadContract({
     address: address as `0x${string}`,
     abi: RACE_ABI,
-    functionName: 'betEnd',
+    functionName: 'startTime',
   });
 
-  const { data: raceEnd } = useReadContract({
+  const { data: duration } = useReadContract({
     address: address as `0x${string}`,
     abi: RACE_ABI,
-    functionName: 'raceEnd',
+    functionName: 'duration',
   });
 
-  const { data: finalized } = useReadContract({
+  const { data: isActive } = useReadContract({
     address: address as `0x${string}`,
     abi: RACE_ABI,
-    functionName: 'finalized',
+    functionName: 'isActive',
   });
 
   const { data: winnerId } = useReadContract({
@@ -81,16 +81,22 @@ export default function RacePage() {
   const { data: totalPool } = useReadContract({
     address: address as `0x${string}`,
     abi: RACE_ABI,
-    functionName: 'totalBetPool',
+    functionName: 'totalPrizePool',
+  });
+
+  const { data: entryFee } = useReadContract({
+    address: address as `0x${string}`,
+    abi: RACE_ABI,
+    functionName: 'entryFee',
   });
 
   // Write contract functions
   const { writeContract: approve, data: approveHash } = useWriteContract();
-  const { writeContract: placeBet, data: betHash } = useWriteContract();
+  const { writeContract: joinRace, data: joinHash } = useWriteContract();
   const { writeContract: claim, data: claimHash } = useWriteContract();
 
   const { isLoading: approveLoading } = useWaitForTransactionReceipt({ hash: approveHash });
-  const { isLoading: betLoading } = useWaitForTransactionReceipt({ hash: betHash });
+  const { isLoading: joinLoading } = useWaitForTransactionReceipt({ hash: joinHash });
   const { isLoading: claimLoading } = useWaitForTransactionReceipt({ hash: claimHash });
 
   // Fetch duck pools
@@ -137,10 +143,13 @@ export default function RacePage() {
     fetchPools();
   }, [race, userAddress]);
 
+  const betEndTime = startTime && duration ? Number(startTime) + Number(duration) : 0;
+  const raceEndTime = betEndTime + 3600; // 1 hour after betting ends
+  
   const state = getRaceState(
-    Number(betEnd || 0),
-    Number(raceEnd || 0),
-    finalized || false
+    betEndTime,
+    raceEndTime,
+    !isActive || false
   );
 
   const handleBet = (duckIndex: number) => {
@@ -184,18 +193,18 @@ export default function RacePage() {
         address: process.env.NEXT_PUBLIC_DUCK_TOKEN as `0x${string}`,
         abi: ERC20_ABI,
         functionName: 'approve',
-        args: [address as `0x${string}`, totalAmount],
+        args: [process.env.NEXT_PUBLIC_RACE_CORE as `0x${string}`, totalAmount],
       });
       
       setIsApproving(false);
       setIsPlacing(true);
       
-      // Place bet on first selected duck (simplified for demo)
-      await placeBet({
+      // Join race with first selected duck
+      await joinRace({
         address: address as `0x${string}`,
         abi: RACE_ABI,
-        functionName: 'placeBet',
-        args: [BigInt(selectedDucks[0]), amount],
+        functionName: 'joinRace',
+        args: [BigInt(selectedDucks[0]), amount, '0x'],
       });
       
       showToast('success', `🎉 Bet placed! Earned 400 QUACK + 800 governance votes!`);
@@ -216,8 +225,8 @@ export default function RacePage() {
     await claim({
       address: address as `0x${string}`,
       abi: RACE_ABI,
-      functionName: 'claim',
-      args: [winnerId],
+      functionName: 'claimRewards',
+      args: [],
     });
   };
 
@@ -226,7 +235,7 @@ export default function RacePage() {
       <div className="min-h-screen bg-duck-ink flex items-center justify-center">
         <div className="relative">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-duck-primary border-t-transparent" />
-          <span className="absolute inset-0 flex items-center justify-center text-2xl">🦆</span>
+          <img src="/ducks/king-duck.jpg" alt="Loading" className="absolute inset-2 w-12 h-12 rounded-full object-cover" />
         </div>
       </div>
     );
@@ -239,8 +248,14 @@ export default function RacePage() {
 
   return (
     <div className="min-h-screen bg-duck-ink text-white relative">
-      {/* Background effects */}
+      {/* Background image */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <img 
+          src="/main-ducks.jpg" 
+          alt="Background ducks" 
+          className="absolute inset-0 w-full h-full object-cover opacity-20"
+        />
+        <div className="absolute inset-0 bg-duck-ink/60" />
         <div className="absolute top-20 left-10 w-64 h-64 bg-duck-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-duck-purple/10 rounded-full blur-3xl" />
       </div>
@@ -249,12 +264,12 @@ export default function RacePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-              <span className="text-2xl sm:text-3xl">🦆</span>
+              <img src="/ducks/king-duck.jpg" alt="Bet Duck" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover" />
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg sm:text-2xl font-bold truncate">{race.topic}</h1>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-1">
-                  <CountdownPill label="Ends in" to={race.betEnd} state={state} />
-                  <span className="text-xs sm:text-sm text-duck-gray">Reveals at {formatTime(race.raceEnd)}</span>
+                  <CountdownPill label="Ends in" to={betEndTime} state={state} />
+                  <span className="text-xs sm:text-sm text-duck-gray">Reveals at {formatTime(raceEndTime)}</span>
                   {/* User governance power */}
                   <div className="hidden lg:flex items-center gap-1 px-2 py-1 bg-duck-yellow/20 border border-duck-yellow/30 rounded-full">
                     <span className="text-xs text-duck-yellow">🗳️</span>
@@ -263,14 +278,14 @@ export default function RacePage() {
                 </div>
               </div>
             </div>
-            <div className="ml-2">
-              <AICommitPill hash={race.commitHash} />
+            <div className="flex items-center gap-3">
+              <WalletConnect />
             </div>
           </div>
         </div>
       </header>
 
-      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 pb-40">
+      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 pb-48">
         {/* Selection info bar */}
         {state === RaceState.BETTING && (
           <div className="mb-6 p-4 bg-gradient-to-r from-duck-dark to-duck-dark-gray border border-duck-primary/20 rounded-2xl">
@@ -328,6 +343,9 @@ export default function RacePage() {
                 />
               ))}
             </div>
+            
+            {/* Bottom spacer to prevent overlap with prediction bar */}
+            <div className="h-44"></div>
             
           </section>
           
@@ -423,9 +441,9 @@ export default function RacePage() {
       </main>
 
       {/* Selection Display - Fixed at bottom during betting */}
-      {(
-        <div className="fixed bottom-0 left-0 right-0 z-10 bg-duck-dark/95 backdrop-blur-xl border-t border-duck-primary/20 p-4">
-          <div className="max-w-7xl mx-auto">
+      {selectedDucks.length > 0 && (
+        <div className="fixed bottom-4 left-4 right-4 z-10">
+          <div className="max-w-4xl mx-auto bg-duck-dark/95 backdrop-blur-xl border border-duck-primary/20 rounded-2xl p-4">
             <SelectionDisplay 
               selectedDucks={selectedDucks} 
               allDucks={race.ducks}
@@ -460,7 +478,7 @@ export default function RacePage() {
           onClose={() => setSelectedDuck(null)}
           onConfirm={handleConfirmBet}
           isApproving={isApproving || approveLoading}
-          isPlacing={isPlacing || betLoading}
+          isPlacing={isPlacing || joinLoading}
         />
       )}
     </div>

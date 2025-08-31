@@ -42,29 +42,29 @@ export const ERC20_ABI = [
 export const RACE_ABI = [
   {
     inputs: [],
-    name: 'betEnd',
+    name: 'duration',
+    outputs: [{ name: '', type: 'uint32' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'startTime',
     outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function'
   },
   {
     inputs: [],
-    name: 'raceEnd',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
-    name: 'totalBetPool',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
-    name: 'finalized',
+    name: 'isActive',
     outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'entryFee',
+    outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function'
   },
@@ -77,70 +77,61 @@ export const RACE_ABI = [
   },
   {
     inputs: [],
-    name: 'aiCommitHash',
-    outputs: [{ name: '', type: 'bytes32' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [{ name: 'index', type: 'uint256' }],
-    name: 'getEntrant',
-    outputs: [
-      {
-        components: [
-          { name: 'creator', type: 'address' },
-          { name: 'betPool', type: 'uint256' },
-          { name: 'tipTotal', type: 'uint256' }
-        ],
-        name: '',
-        type: 'tuple'
-      }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [
-      { name: 'user', type: 'address' },
-      { name: 'entrantId', type: 'uint256' }
-    ],
-    name: 'getUserBet',
+    name: 'totalPrizePool',
     outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function'
   },
   {
     inputs: [
-      { name: 'entrantId', type: 'uint256' },
-      { name: 'amount', type: 'uint256' }
+      { name: 'duckId', type: 'uint256' },
+      { name: 'betAmount', type: 'uint256' },
+      { name: 'hookData', type: 'bytes' }
     ],
-    name: 'placeBet',
+    name: 'joinRace',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function'
   },
   {
-    inputs: [{ name: 'entrantId', type: 'uint256' }],
-    name: 'claim',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function'
-  },
-  {
-    inputs: [{ name: 'commitHash', type: 'bytes32' }],
-    name: 'setAICommit',
+    inputs: [{ name: 'hookData', type: 'bytes' }],
+    name: 'startRace',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function'
   },
   {
     inputs: [
-      { name: 'secretIndex', type: 'uint256' },
-      { name: 'salt', type: 'uint256' }
+      { name: 'winnerDuckId', type: 'uint256' },
+      { name: 'hookData', type: 'bytes' }
     ],
-    name: 'finalizeWithReveal',
+    name: 'finishRace',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'claimRewards',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function'
+  },
+  {
+    inputs: [{ name: 'duckId', type: 'uint256' }],
+    name: 'getDuckBetPool',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [
+      { name: 'user', type: 'address' },
+      { name: 'duckId', type: 'uint256' }
+    ],
+    name: 'getUserBetForDuck',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
     type: 'function'
   }
 ] as const;

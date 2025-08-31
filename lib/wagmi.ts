@@ -1,10 +1,10 @@
 import { createConfig, http } from 'wagmi';
 import { createPublicClient } from 'viem';
 import { mainnet } from 'wagmi/chains';
-import { walletConnect } from '@wagmi/connectors';
+import { injected } from '@wagmi/connectors';
 
 const duckChain = {
-  id: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || '20'),
+  id: 5545,
   name: 'DuckChain',
   nativeCurrency: {
     decimals: 18,
@@ -26,9 +26,7 @@ const duckChain = {
 export const config = createConfig({
   chains: [duckChain],
   connectors: [
-    walletConnect({
-      projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'dummy-project-id',
-    }),
+    injected(),
   ],
   transports: {
     [duckChain.id]: http(duckChain.rpcUrls.default.http[0]),
