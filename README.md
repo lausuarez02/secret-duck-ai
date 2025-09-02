@@ -4,6 +4,11 @@
 
 A sophisticated decentralized prediction platform where users bet DUCK tokens by predicting which 4 ducks an AI agent will choose in order. Built on a modular hook architecture with DAT economic assets and triple-token governance.
 
+## Contracts code
+
+https://github.com/tomi204/quack-contracts
+
+
 ## 🎯 Core Game
 
 **Simple for Users**: Pick 4 ducks in the order you think the AI chose them
